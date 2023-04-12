@@ -1,0 +1,13 @@
+[package]
+name = "splunk-github-sbom"
+description = "Send your SBOM data to a Splunk instance via the HTTP Event Collector endpoint."
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.67"
+
+[dependencies]
+clap = { version = "4.2.1", features = ["derive"] }
+serde_json = "1.0.95"
+
+splunk = { version="0.1.1-alpha2", features = ["hec"] }
+tokio = { version = "1.27.0", features = ["rt", "macros"] }

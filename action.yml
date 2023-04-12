@@ -1,0 +1,43 @@
+name: splunk-github-sbom
+description: Send your SBOM data to a Splunk instance via the HTTP Event Collector endpoint.
+author: James Hodgkinson <james@terminaloutcomes.com>
+inputs:
+  server:
+    description: 'The Splunk server to send to'
+    required: true
+  token:
+    description: 'The HEC token to use'
+    required: true
+  data:
+    description: 'A JSON event to send'
+    required: true
+  index:
+    description: 'Set the index'
+    default: ''
+    required: false
+  sourcetype:
+    description: 'Set the sourcetype'
+    default: ''
+    required: false
+  source:
+    description: 'Set the source'
+    default: ''
+    required: false
+  port:
+    description: 'Set the HEC port'
+    default: "8088"
+    required: false
+outputs:
+  error:
+    description: 'The description of any error that occurred'
+runs:
+  using: 'docker'
+  image: 'ghcr.io/yaleman/splunk-github-sbom:v1'
+  args:
+    - ${{ inputs.server }}
+    - ${{ inputs.token }}
+    - ${{ inputs.data }}
+    - ${{ inputs.index }}
+    - ${{ inputs.sourcetype }}
+    - ${{ inputs.source }}
+

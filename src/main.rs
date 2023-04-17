@@ -1,10 +1,9 @@
+use clap::Parser;
 use std::env;
 use std::fs::write;
 use std::process::exit;
-use clap::Parser;
 
 use splunk::hec::HecClient;
-
 
 #[derive(Parser)]
 #[command()]
@@ -40,10 +39,13 @@ async fn main() {
         let port = match cli.port.parse::<u16>() {
             Ok(val) => val,
             Err(err) => {
-                write(github_output_path, format!("error=\"failed to parse port to u16 - {:?}\"", err)).unwrap();
+                write(
+                    github_output_path,
+                    format!("error=\"failed to parse port to u16 - {:?}\"", err),
+                )
+                .unwrap();
                 exit(1)
-            },
-
+            }
         };
         client.serverconfig.port = port;
     }
@@ -53,10 +55,10 @@ async fn main() {
         Err(err) => {
             write(github_output_path, format!("error=\"{:?}\"", err)).unwrap();
             exit(1)
-        },
+        }
     };
 
-    if let Err(err) =  client.send_event(event).await {
+    if let Err(err) = client.send_event(event).await {
         write(github_output_path, format!("error=\"{:?}\"", err)).unwrap();
         exit(1)
     }

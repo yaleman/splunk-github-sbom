@@ -27,6 +27,15 @@ inputs:
     description: 'Set the HEC port'
     default: "8088"
     required: false
+  repository:
+    description: "The repo name"
+    default: ''
+    required: true
+  owner:
+    description: "The username/organisation that owns the repo"
+    default: ''
+    required: true
+
 outputs:
   error:
     description: 'The description of any error that occurred'

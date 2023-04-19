@@ -37,7 +37,7 @@ outputs:
     description: 'The description of any error that occurred'
 runs:
   using: 'docker'
-  image: 'ghcr.io/yaleman/splunk-github-sbom:v1'
+  image: Dockerfile
   args:
     - ${{ inputs.server }}
     - ${{ inputs.token }}

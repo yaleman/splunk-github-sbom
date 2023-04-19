@@ -17,7 +17,6 @@ struct Cli {
     source: String,
     port: String,
     repository: String,
-    github_token: String,
 }
 
 const RATELIMIT: &str = r#"	rateLimit {
@@ -127,7 +126,7 @@ fn write_error(github_output_path: String, error_message: String) {
 #[tokio::main]
 async fn main() {
     let github_output_path = env::var("GITHUB_OUTPUT").unwrap_or("./output.txt".to_string());
-    // let github_token = env::var("GITHUB_TOKEN").expect("Couldn't find GITHUB_TOKEN in env vars!");
+    let github_token = env::var("INPUT_GITHUB_TOKEN").expect("Couldn't find INPUT_GITHUB_TOKEN in env vars!");
 
     let cli = Cli::parse();
 
@@ -166,7 +165,7 @@ async fn main() {
     let repository = repo_split.next().unwrap();
 
     // pull it out of github
-    let mut res = match get_dependency_data(cli.github_token, repository, owner).await {
+    let mut res = match get_dependency_data(github_token, repository, owner).await {
         Ok(val) => val,
         Err(err) => {
             eprintln!("Failed: {}", err);

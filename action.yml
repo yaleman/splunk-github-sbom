@@ -31,6 +31,10 @@ inputs:
     description: "The full repo name, ie 'yaleman/hello-world'"
     default: ''
     required: true
+  github_token:
+    description: "A token for authenticating against the GraphQL API"
+    default: ''
+    required: true
 
 outputs:
   error:

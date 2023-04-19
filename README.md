@@ -5,7 +5,6 @@ Send your SBOM data to a Splunk instance via the HTTP Event Collector endpoint.
 <!-- arguments table start -->
 | Argument     | Description                                        | Required | Default |
 | ------------ | -------------------------------------------------- | -------- | ------- |
-| data         | A JSON event to send                               | true     |         |
 | github_token | A token for authenticating against the GraphQL API | true     |         |
 | index        | Set the index                                      | false    |         |
 | port         | Set the HEC port                                   | false    | 8088    |

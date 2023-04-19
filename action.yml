@@ -8,9 +8,6 @@ inputs:
   token:
     description: 'The HEC token to use'
     required: true
-  data:
-    description: 'A JSON event to send'
-    required: true
   index:
     description: 'Set the index'
     default: ''

@@ -14,4 +14,5 @@ splunk = { version="0.1.1-alpha2", features = ["hec"] }
 tokio = { version = "1.27.0", features = ["rt", "macros"] }
 
 [dev-dependencies]
+regex = "1.7.3"
 serde_yaml = "0.9.21"

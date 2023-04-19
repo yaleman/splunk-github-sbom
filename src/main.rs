@@ -1,8 +1,6 @@
 use clap::Parser;
-use reqwest::Error;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde_json::{json, Value};
-use std::collections::HashMap;
 use std::env;
 use std::fs::write;
 use std::process::exit;
@@ -14,15 +12,12 @@ use splunk::hec::HecClient;
 struct Cli {
     server: String,
     token: String,
-    data: String,
     index: String,
     sourcetype: String,
     source: String,
     port: String,
     repository: String,
-    owner: String,
 }
-
 
 const RATELIMIT: &str = r#"	rateLimit {
     cost
@@ -33,7 +28,11 @@ const RATELIMIT: &str = r#"	rateLimit {
     used
 }"#;
 
-async fn get_dependency_data(github_token: String, repo: String, owner: String) -> Result<String, Error> {
+async fn get_dependency_data(
+    github_token: String,
+    repo: &str,
+    owner: &str,
+) -> Result<Vec<Value>, String> {
     let mut query_string = r#"query {
         viewer {
             login
@@ -57,7 +56,9 @@ async fn get_dependency_data(github_token: String, repo: String, owner: String) 
             }
         }
     }
-    "#.replace("REPO", &repo).replace("OWNER", &owner);
+    "#
+    .replace("REPO", repo)
+    .replace("OWNER", owner);
 
     if let Ok(val) = env::var("SHOW_RATELIMIT") {
         if val == "1" {
@@ -65,31 +66,61 @@ async fn get_dependency_data(github_token: String, repo: String, owner: String) 
         }
     }
 
-    let query = json!({ "query" :query_string });
-
+    let query = json!({ "query": query_string });
 
     let mut headers = HeaderMap::new();
-    headers.insert("Accept", HeaderValue::from_str("application/vnd.github.hawkgirl-preview+json").unwrap());
-    headers.insert("Content-Type", HeaderValue::from_str("application/json").unwrap());
-    headers.insert("User-Agent", HeaderValue::from_str("splunk-github-sbom").unwrap());
+    headers.insert(
+        "Accept",
+        HeaderValue::from_str("application/vnd.github.hawkgirl-preview+json").unwrap(),
+    );
+    headers.insert(
+        "Content-Type",
+        HeaderValue::from_str("application/json").unwrap(),
+    );
+    headers.insert(
+        "User-Agent",
+        HeaderValue::from_str("splunk-github-sbom").unwrap(),
+    );
 
     let resp = reqwest::Client::new()
         .post("https://api.github.com/graphql")
         .headers(headers)
         .bearer_auth(github_token)
-        .json(&query)
-        // .body("{\"query\":\"query { \\n  viewer { \\n    login\\n  }\\n}\"}")
-        ;
-        // .bearer_auth(github_token)
-    // eprintln!("{resp:#?}");
-    let resp = resp.send().await?;
+        .json(&query);
+    let resp = resp
+        .send()
+        .await
+        .expect("Failed to send request to github!");
 
-    // println!("{:#?}", resp);
-    // println!("{:#?}", resp.bytes().await);
-    let json: Value = resp.json().await?;
-    // let json = resp.json::<HashMap<String, String>>().await?;
-    // Ok(serde_json::to_string(&json).unwrap())
-    Ok(serde_json::to_string(&json).unwrap())
+    let json: Value = resp.json().await.unwrap();
+    let json = json.as_object().unwrap();
+    if let Some(errors) = json.get("errors") {
+        return Err(errors.to_string());
+    }
+    println!("{:#?}", json);
+    let result = json
+        .get("data")
+        .unwrap()
+        .as_object()
+        .unwrap()
+        .get("repository")
+        .unwrap()
+        .as_object()
+        .unwrap()
+        .get("dependencyGraphManifests")
+        .unwrap()
+        .as_object()
+        .unwrap()
+        .get("nodes")
+        .unwrap()
+        .as_array()
+        .unwrap();
+    Ok(result.to_vec())
+}
+
+fn write_error(github_output_path: String, error_message: String) {
+    write(github_output_path, format!("error=\"{}\"", error_message)).unwrap();
+    exit(1)
 }
 
 #[tokio::main]
@@ -101,48 +132,69 @@ async fn main() {
 
     let mut client = HecClient::new(cli.token, cli.server);
 
-    if cli.index != "" {
+    if !cli.index.is_empty() {
         client = client.with_index(cli.index);
     }
-    if cli.sourcetype != "" {
+    if !cli.sourcetype.is_empty() {
         client = client.with_sourcetype(cli.sourcetype);
     }
-    if cli.source != "" {
+    if !cli.source.is_empty() {
         client = client.with_sourcetype(cli.source);
     }
 
-    // if cli.port != "" {
-    //     let port = match cli.port.parse::<u16>() {
-    //         Ok(val) => val,
-    //         Err(err) => {
-    //             write(
-    //                 github_output_path,
-    //                 format!("error=\"failed to parse port to u16 - {:?}\"", err),
-    //             )
-    //             .unwrap();
-    //             exit(1)
-    //         }
-    //     };
-    //     client.serverconfig.port = port;
-    // }
+    if !cli.port.is_empty() {
+        let port = match cli.port.parse::<u16>() {
+            Ok(val) => val,
+            Err(err) => {
+                return write_error(
+                    github_output_path,
+                    format!("failed to parse port to u16 - {err:?}"),
+                )
+            }
+        };
+        client.serverconfig.port = port;
+    }
 
-    match get_dependency_data(github_token, "kanidm".to_string(), "kanidm".to_string()).await {
-        Ok(val) => println!("{val}"),
-        Err(err) => eprintln!("Failed: {err:?}"),
+    if !cli.repository.contains('/') {
+        return write_error(github_output_path, format!("Can't find / in repository name, got: {}", cli.repository));
+    }
+
+    let mut repo_split = cli.repository.split('/');
+
+    let owner = repo_split.next().unwrap();
+    let repository = repo_split.next().unwrap();
+
+    // pull it out of github
+    let mut res = match get_dependency_data(github_token, repository, owner).await {
+        Ok(val) => val,
+        Err(err) => {
+            eprintln!("Failed: {}", err);
+            return write_error(github_output_path, err);
+        }
     };
 
+    let repo_fullname = Value::String(format!("{}/{}", owner, repository));
 
-    // let event = match serde_json::from_str(&cli.data) {
-    //     Ok(val) => val,
-    //     Err(err) => {
-    //         write(github_output_path, format!("error=\"{:?}\"", err)).unwrap();
-    //         exit(1)
-    //     }
-    // };
+    // generally make a mess of it
+    for result in res.iter_mut() {
+        // println!("result: {}", serde_json::to_string(&result).unwrap());
+        let res = result.as_object().unwrap();
+        for node in res.get("dependencies").unwrap().as_object().unwrap().get("nodes").unwrap().as_array().into_iter() {
+            let mut node = node.clone();
+            for n in node.iter_mut() {
+                // println!("#############");
+                n.as_object_mut().unwrap().insert("filename".to_string(), res.get("filename").unwrap().clone());
+                n.as_object_mut().unwrap().insert("repository".to_string(), repo_fullname.clone());
+                // println!("node: {}", serde_json::to_string(&n).unwrap());
 
-    // if let Err(err) = client.send_event(event).await {
-    //     write(github_output_path, format!("error=\"{:?}\"", err)).unwrap();
-    //     exit(1)
-    // }
-    // println!("Ok!");
+                client.enqueue(n.to_owned()).await;
+            }
+
+        }
+    }
+    if let Err(err) = client.flush(None).await {
+        eprintln!("Failed to flush HEC queue: {err:?}");
+        std::process::exit(1);
+    };
+    println!("Ok!");
 }

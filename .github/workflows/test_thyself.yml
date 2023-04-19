@@ -1,0 +1,18 @@
+---
+"on":
+  push:
+  pull_request:
+
+jobs:
+  test_thyself:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          depth: 1
+      - uses: ${github.repository}@${github.ref_name}
+        with:
+          repository: ${github.repository}
+          server: ${SECRETS.server}
+          token: ${SECRETS.token}
+          port: ${SECRETS.port}

@@ -28,11 +28,7 @@ inputs:
     default: "8088"
     required: false
   repository:
-    description: "The repo name"
-    default: ''
-    required: true
-  owner:
-    description: "The username/organisation that owns the repo"
+    description: "The full repo name, ie 'yaleman/hello-world'"
     default: ''
     required: true
 

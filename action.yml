@@ -1,3 +1,4 @@
+# https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 name: splunk-github-sbom
 description: Send your SBOM data to a Splunk instance via the HTTP Event Collector endpoint.
 author: James Hodgkinson <james@terminaloutcomes.com>
@@ -36,10 +37,12 @@ runs:
   using: 'docker'
   image: Dockerfile
   args:
+    - ${{ inputs.github_token }}
     - ${{ inputs.server }}
-    - ${{ inputs.token }}
-    - ${{ inputs.data }}
+    - ${{ inputs.splunk_token }}
     - ${{ inputs.index }}
     - ${{ inputs.sourcetype }}
     - ${{ inputs.source }}
+    - ${{ inputs.port }}
+    - ${{ inputs.repository }}
 

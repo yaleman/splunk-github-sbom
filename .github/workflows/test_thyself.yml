@@ -25,7 +25,7 @@ jobs:
       - uses: yaleman/splunk-github-sbom@dev
         with:
           github_token: "${{ github.token }}"
-          server: "${{ secrets.SERVER }}server"
-          port: "${{ secrets.PORT }}port"
-          splunk_token: "${{ secrets.TOKEN }}token"
-          repository: "${{ github.repository }}repository"
+          server: "${{ secrets.SERVER }}"
+          port: "${{ secrets.PORT }}"
+          splunk_token: "${{ secrets.TOKEN }}"
+          repository: "${{ github.repository }}"

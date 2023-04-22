@@ -2,23 +2,25 @@ name: splunk-github-sbom
 description: Send your SBOM data to a Splunk instance via the HTTP Event Collector endpoint.
 author: James Hodgkinson <james@terminaloutcomes.com>
 inputs:
+  github_token:
+    description: 'The GitHub token to use'
+    required: true
   server:
     description: 'The Splunk server to send to'
     required: true
-  token:
+  splunk_token:
     description: 'The HEC token to use'
     required: true
   index:
     description: 'Set the index'
-    default: ''
     required: false
   sourcetype:
     description: 'Set the sourcetype'
-    default: ''
+    default: 'github:sbom'
     required: false
   source:
     description: 'Set the source'
-    default: ''
+    default: 'github-actions'
     required: false
   port:
     description: 'Set the HEC port'
@@ -26,8 +28,7 @@ inputs:
     required: false
   repository:
     description: "The full repo name, ie 'yaleman/hello-world'"
-    default: ''
-
+    required: false
 outputs:
   error:
     description: 'The description of any error that occurred'

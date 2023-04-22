@@ -10,12 +10,16 @@ use splunk::hec::HecClient;
 #[derive(Parser)]
 #[command()]
 struct Cli {
+    github_token: String,
     server: String,
-    token: String,
+    hec_token: String,
     index: String,
     sourcetype: String,
+    /// set the source field on the event, defaults to github-actions
     source: String,
+    /// the port to use for the HEC server
     port: String,
+    /// the Full naem of the repository, e.g. yaleman/splunk-github-sbom
     repository: String,
 }
 
@@ -130,7 +134,7 @@ async fn main() {
 
     let cli = Cli::parse();
 
-    let mut client = HecClient::new(cli.token, cli.server);
+    let mut client = HecClient::new(cli.hec_token, cli.server);
 
     if !cli.index.is_empty() {
         client = client.with_index(cli.index);
@@ -139,7 +143,9 @@ async fn main() {
         client = client.with_sourcetype(cli.sourcetype);
     }
     if !cli.source.is_empty() {
-        client = client.with_sourcetype(cli.source);
+        client = client.with_source(cli.source);
+    } else {
+        client = client.with_source("github-actions")
     }
 
     if !cli.port.is_empty() {

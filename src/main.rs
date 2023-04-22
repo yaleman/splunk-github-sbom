@@ -130,7 +130,8 @@ fn write_error(github_output_path: String, error_message: String) {
 #[tokio::main]
 async fn main() {
     let github_output_path = env::var("GITHUB_OUTPUT").unwrap_or("./output.txt".to_string());
-    let github_token = env::var("INPUT_GITHUB_TOKEN").expect("Couldn't find INPUT_GITHUB_TOKEN in env vars!");
+    let github_token =
+        env::var("INPUT_GITHUB_TOKEN").expect("Couldn't find INPUT_GITHUB_TOKEN in env vars!");
 
     let cli = Cli::parse();
 
@@ -162,7 +163,10 @@ async fn main() {
     }
 
     if !cli.repository.contains('/') {
-        return write_error(github_output_path, format!("Can't find / in repository name, got: {}", cli.repository));
+        return write_error(
+            github_output_path,
+            format!("Can't find / in repository name, got: {}", cli.repository),
+        );
     }
 
     let mut repo_split = cli.repository.split('/');
@@ -185,17 +189,29 @@ async fn main() {
     for result in res.iter_mut() {
         // println!("result: {}", serde_json::to_string(&result).unwrap());
         let res = result.as_object().unwrap();
-        for node in res.get("dependencies").unwrap().as_object().unwrap().get("nodes").unwrap().as_array().into_iter() {
+        for node in res
+            .get("dependencies")
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .get("nodes")
+            .unwrap()
+            .as_array()
+            .into_iter()
+        {
             let mut node = node.clone();
             for n in node.iter_mut() {
                 // println!("#############");
-                n.as_object_mut().unwrap().insert("filename".to_string(), res.get("filename").unwrap().clone());
-                n.as_object_mut().unwrap().insert("repository".to_string(), repo_fullname.clone());
+                n.as_object_mut()
+                    .unwrap()
+                    .insert("filename".to_string(), res.get("filename").unwrap().clone());
+                n.as_object_mut()
+                    .unwrap()
+                    .insert("repository".to_string(), repo_fullname.clone());
                 // println!("node: {}", serde_json::to_string(&n).unwrap());
 
                 client.enqueue(n.to_owned()).await;
             }
-
         }
     }
     if let Err(err) = client.flush(None).await {

@@ -1,7 +1,7 @@
 [package]
 name = "splunk-github-sbom"
 description = "Send your SBOM data to a Splunk instance via the HTTP Event Collector endpoint."
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.67"
 

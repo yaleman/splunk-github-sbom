@@ -137,6 +137,9 @@ async fn main() {
 
     let mut client = HecClient::new(cli.hec_token, cli.server);
 
+    // set the HecClient useragent to splunk-github-sbom <our-version>
+    client.useragent(format!("splunk-github-sbom {}", env!("CARGO_PKG_VERSION")));
+
     if !cli.index.is_empty() {
         client = client.with_index(cli.index);
     }

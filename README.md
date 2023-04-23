@@ -2,6 +2,19 @@
 
 Send your SBOM data to a Splunk instance via the HTTP Event Collector endpoint.
 
+There's an example of usage [in our own github actions test file](https://github.com/yaleman/splunk-github-sbom/blob/dev/.github/workflows/test_thyself.yml), but here's another option:
+
+You'll need secrets for at least the target server and HTTP Event Collector token.
+
+```yaml
+- uses: yaleman/splunk-github-sbom@v1
+  with:
+    github_token: "${{ github.token }}"
+    server: "${{ secrets.SERVER }}"
+    splunk_token: "${{ secrets.TOKEN }}"
+    repository: "${{ github.repository }}"
+```
+
 <!-- arguments table start -->
 | Argument     | Description                                  | Required | Default        |
 | ------------ | -------------------------------------------- | -------- | -------------- |

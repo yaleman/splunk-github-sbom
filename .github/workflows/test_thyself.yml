@@ -22,7 +22,7 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - uses: yaleman/splunk-github-sbom@${{ github.ref_name }}
+      - uses: yaleman/splunk-github-sbom@dev
         with:
           github_token: "${{ github.token }}"
           server: "${{ secrets.SERVER }}"

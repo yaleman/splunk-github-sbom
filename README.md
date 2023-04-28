@@ -28,3 +28,7 @@ You'll need secrets for at least the target server and HTTP Event Collector toke
 | splunk_token | The HEC token to use                         | true     |                |
 
 <!-- arguments table end -->
+
+## References
+
+- [How to write a github action in Rust](https://dylananthony.com/blog/how-to-write-a-github-action-in-rust/)

@@ -1,8 +1,9 @@
 ---
 "on":
   push:
-  pull_request:
-
+    branches:
+      - v1
+      - dev
 jobs:
   test_thyself:
     runs-on: ubuntu-latest

@@ -8,6 +8,9 @@ WORKDIR /splunk-github-sbom
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
 
+# fixing the issue with getting OOMKilled in BuildKit
+ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
+
 # this build step will cache your dependencies
 RUN cargo build --release
 RUN rm src/*.rs

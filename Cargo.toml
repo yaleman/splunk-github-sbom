@@ -10,7 +10,7 @@ clap = { version = "4.3.10", features = ["derive"] }
 serde_json = "1.0.99"
 reqwest = { version = "0.11.18", features = ["serde_json", "json"] }
 
-splunk = { version="0.1.1-alpha2", features = ["hec"] }
+splunk = { version="0.1.1-alpha4", features = ["hec"] }
 tokio = { version = "1.29.1", features = ["rt", "macros"] }
 
 [dev-dependencies]

@@ -1088,9 +1088,9 @@ dependencies = [
 
 [[package]]
 name = "splunk"
-version = "0.1.1-alpha3"
+version = "0.1.1-alpha4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab2cd9637aa1c41584a269e25e6bfdd36023d78dfd72220b8fd7adc5d83ff037"
+checksum = "470973fe7b76eb2b9e03f67506bc27240fa855de2320a03c95065a97dedb45e3"
 dependencies = [
  "futures",
  "futures-util",

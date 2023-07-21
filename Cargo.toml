@@ -15,4 +15,4 @@ tokio = { version = "1.29.1", features = ["rt", "macros"] }
 
 [dev-dependencies]
 regex = "1.9.1"
-serde_yaml = "0.9.22"
+serde_yaml = "0.9.25"

@@ -1,4 +1,4 @@
-FROM rust:1.68 as build
+FROM rust:latest as build
 
 # create a new empty shell project
 RUN USER=root cargo new --bin splunk-github-sbom

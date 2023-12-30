@@ -22,8 +22,8 @@ COPY ./src ./src
 RUN rm ./target/release/deps/splunk_github_sbom*
 RUN cargo build --release
 
-# our final base
-FROM gcr.io/distroless/cc AS runtime
+# our final base, need to use the debian base because of the openssl dependency
+FROM gcr.io/distroless/cc-debian12 AS runtime
 
 # copy the build artifact from the build stage
 COPY --from=build /splunk-github-sbom/target/release/splunk-github-sbom .

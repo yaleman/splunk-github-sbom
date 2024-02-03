@@ -7,7 +7,7 @@ rust-version = "1.67"
 
 [dependencies]
 clap = { version = "4.4.18", features = ["derive"] }
-serde_json = "1.0.111"
+serde_json = "1.0.113"
 reqwest = { version = "0.11.24", features = ["serde_json", "json"] }
 
 splunk = { version="0.1.1-alpha4", features = ["hec"] }

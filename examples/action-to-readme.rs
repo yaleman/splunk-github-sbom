@@ -1,6 +1,5 @@
 use regex::Regex;
 use serde_json::Value;
-use serde_yaml;
 use std::path::PathBuf;
 
 fn replace_in_file(replacement: String, filename: String) {
@@ -28,7 +27,7 @@ fn replace_in_file(replacement: String, filename: String) {
     let string_start = file_contents.split_at(range.start).0;
     let string_end = file_contents.split_at(range.end).1;
 
-    let file_result = format!("{}\n{}\n{}", string_start, replacement, string_end);
+    let file_result = format!("{string_start}\n{replacement}\n{string_end}");
 
     // write out the file
     std::fs::write(PathBuf::from(filename), file_result).expect("Unable to write file");
@@ -42,15 +41,15 @@ fn main() {
         std::fs::read_to_string(filename).expect("Something went wrong reading the file");
 
     let yaml: Value =
-        serde_yaml::from_str(&contents).expect(&format!("Couldn't parse {}", filename));
+        serde_yaml::from_str(&contents).unwrap_or_else(|_| panic!("Couldn't parse {filename}"));
 
     let file = yaml
         .as_object()
-        .expect(&format!("Couldn't parse {}", filename));
+        .unwrap_or_else(|| panic!("Couldn't parse {filename}"));
 
     let inputs = file
         .get("inputs")
-        .expect(&format!("Couldn't parse {}", filename))
+        .unwrap_or_else(|| panic!("Couldn't parse {filename}"))
         .as_object()
         .unwrap();
 
@@ -106,18 +105,18 @@ fn main() {
 
     let mut result_str = String::new();
     rows.into_iter().enumerate().for_each(|(row_i, row)| {
-        result_str.push_str("|");
+        result_str.push('|');
         row.into_iter().enumerate().for_each(|(i, col)| {
             let width = col_stats[i];
-            result_str.push_str(&format!(" {:<width$} |", col));
+            result_str.push_str(&format!(" {col:<width$} |"));
         });
-        result_str.push_str("\n");
+        result_str.push('\n');
         if row_i == 0 {
-            result_str.push_str("|");
+            result_str.push('|');
             col_stats.iter().for_each(|width| {
                 result_str.push_str(&format!(" {:<width$} |", "-".repeat(*width)));
             });
-            result_str.push_str("\n");
+            result_str.push('\n');
         }
     });
     replace_in_file(result_str, "README.md".to_string());

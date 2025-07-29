@@ -101,7 +101,7 @@ async fn get_dependency_data(
     if let Some(errors) = json.get("errors") {
         return Err(errors.to_string());
     }
-    println!("{:#?}", json);
+    println!("{json:#?}");
     let result = json
         .get("data")
         .unwrap()
@@ -123,7 +123,8 @@ async fn get_dependency_data(
 }
 
 fn write_error(github_output_path: String, error_message: String) {
-    write(github_output_path, format!("error=\"{}\"", error_message)).unwrap();
+    write(github_output_path, format!("error=\"{error_message}\""))
+        .expect("Unable to write error to GITHUB_OUTPUT");
     exit(1)
 }
 
@@ -181,16 +182,15 @@ async fn main() {
     let mut res = match get_dependency_data(github_token, repository, owner).await {
         Ok(val) => val,
         Err(err) => {
-            eprintln!("Failed: {}", err);
+            eprintln!("Failed: {err}");
             return write_error(github_output_path, err);
         }
     };
 
-    let repo_fullname = Value::String(format!("{}/{}", owner, repository));
+    let repo_fullname = Value::String(format!("{owner}/{repository}"));
 
     // generally make a mess of it
     for result in res.iter_mut() {
-        // println!("result: {}", serde_json::to_string(&result).unwrap());
         let res = result.as_object().unwrap();
         for node in res
             .get("dependencies")

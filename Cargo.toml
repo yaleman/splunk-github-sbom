@@ -6,7 +6,7 @@ edition = "2021"
 rust-version = "1.67"
 
 [dependencies]
-clap = { version = "4.3.24", features = ["derive"] }
+clap = { version = "4.5.42", features = ["derive"] }
 serde_json = "1.0.141"
 reqwest = { version = "0.12.22", features = ["json"] }
 

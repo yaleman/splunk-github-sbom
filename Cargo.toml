@@ -11,7 +11,7 @@ serde_json = "1.0.141"
 reqwest = { version = "0.12.22", features = ["json"] }
 
 splunk = { version = "0.1.2" }
-tokio = { version = "1.38.2", features = ["rt", "macros"] }
+tokio = { version = "1.47.1", features = ["rt", "macros"] }
 
 [dev-dependencies]
 regex = "1.11.1"

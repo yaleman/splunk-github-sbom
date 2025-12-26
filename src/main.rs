@@ -136,19 +136,19 @@ async fn main() {
 
     let cli = Cli::parse();
 
-    let mut client = HecClient::new(cli.hec_token, cli.server);
+    let mut client = HecClient::new(&cli.hec_token, &cli.server);
 
     // set the HecClient useragent to splunk-github-sbom <our-version>
-    client.useragent(format!("splunk-github-sbom {}", env!("CARGO_PKG_VERSION")));
+    client.useragent(&format!("splunk-github-sbom {}", env!("CARGO_PKG_VERSION")));
 
     if !cli.index.is_empty() {
-        client = client.with_index(cli.index);
+        client = client.with_index(&cli.index);
     }
     if !cli.sourcetype.is_empty() {
-        client = client.with_sourcetype(cli.sourcetype);
+        client = client.with_sourcetype(&cli.sourcetype);
     }
     if !cli.source.is_empty() {
-        client = client.with_source(cli.source);
+        client = client.with_source(&cli.source);
     } else {
         client = client.with_source("github-actions")
     }

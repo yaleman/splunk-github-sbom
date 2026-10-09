@@ -1,13 +1,14 @@
 use clap::Parser;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde_json::{json, Value};
+use splunk::server_config::ServerConfigBuilder;
 use std::env;
 use std::fs::write;
-use std::process::exit;
+use std::process::ExitCode;
 
 use splunk::hec::HecClient;
 
-#[derive(Parser)]
+#[derive(Clone, Parser)]
 #[command()]
 struct Cli {
     github_token: String,
@@ -122,25 +123,50 @@ async fn get_dependency_data(
     Ok(result.to_vec())
 }
 
-fn write_error(github_output_path: String, error_message: String) {
+fn write_error(github_output_path: String, error_message: String) -> ExitCode {
     write(github_output_path, format!("error=\"{error_message}\""))
         .expect("Unable to write error to GITHUB_OUTPUT");
-    exit(1)
+    ExitCode::FAILURE
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> ExitCode {
     let github_output_path = env::var("GITHUB_OUTPUT").unwrap_or("./output.txt".to_string());
     let github_token =
         env::var("INPUT_GITHUB_TOKEN").expect("Couldn't find INPUT_GITHUB_TOKEN in env vars!");
 
     let cli = Cli::parse();
 
-    let mut client = HecClient::new(&cli.hec_token, &cli.server);
+    let mut serverconfig = ServerConfigBuilder::new(&cli.server);
 
-    // set the HecClient useragent to splunk-github-sbom <our-version>
-    client.useragent(&format!("splunk-github-sbom {}", env!("CARGO_PKG_VERSION")));
+    if !cli.port.is_empty() {
+        let port = match cli.port.parse::<u16>() {
+            Ok(val) => val,
+            Err(err) => {
+                return write_error(
+                    github_output_path,
+                    format!("failed to parse port to u16 - {err:?}"),
+                )
+            }
+        };
+        serverconfig = serverconfig.with_port(port);
+    }
 
+    let serverconfig = match serverconfig.build() {
+        Ok(config) => config,
+        Err(err) => {
+            return write_error(
+                github_output_path,
+                format!("failed to build server config - {err:?}"),
+            )
+        }
+    };
+    let mut client = match HecClient::new(&cli.hec_token, &cli.server) {
+        Ok(client) => client,
+        Err(_) => return ExitCode::FAILURE,
+    };
+
+    client.serverconfig = serverconfig;
     if !cli.index.is_empty() {
         client = client.with_index(&cli.index);
     }
@@ -153,18 +179,8 @@ async fn main() {
         client = client.with_source("github-actions")
     }
 
-    if !cli.port.is_empty() {
-        let port = match cli.port.parse::<u16>() {
-            Ok(val) => val,
-            Err(err) => {
-                return write_error(
-                    github_output_path,
-                    format!("failed to parse port to u16 - {err:?}"),
-                )
-            }
-        };
-        client.serverconfig.port = port;
-    }
+    // set the HecClient useragent to splunk-github-sbom <our-version>
+    client.useragent(&format!("splunk-github-sbom {}", env!("CARGO_PKG_VERSION")));
 
     if !cli.repository.contains('/') {
         return write_error(
@@ -222,4 +238,5 @@ async fn main() {
         std::process::exit(1);
     };
     println!("Ok!");
+    ExitCode::SUCCESS
 }
